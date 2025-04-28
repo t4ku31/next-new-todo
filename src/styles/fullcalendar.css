@@ -1,0 +1,39 @@
+/* app/styles/fullcalendar.css */
+@layer components {
+  /* ツールバー全体をヘッダーと同色に */
+  .fc-toolbar .fc-button {
+    all: unset !important;        /* デフォルトの背景・枠・余白などをすべてクリア */
+    margin: 0 0.5rem !important;  /* ボタン同士のスペースだけ残す */
+    color: inherit !important;    /* 親要素の文字色を継承 */
+    font-size: inherit !important;/* フォントサイズを継承 */
+    cursor: pointer;              /* クリックカーソルは維持 */
+  }
+
+  /* ホバー時も背景を出さず、色だけ変えたい場合 */
+  .fc-toolbar .fc-button:hover {
+    background: none !important;
+    color: #3b82f6 !important;    /* 好きなホバー色に */
+  }
+  /* 今日セル */
+  td.fc-daygrid-day.fc-day-today .fc-daygrid-day-frame {
+    background: #3B82F6 !important;
+  }
+  td.fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    color: #FFFFFF !important;
+  }
+
+  /* 選択中セル */
+  .fc-daygrid-day.fc-selected-day .fc-daygrid-day-frame {
+    background: #A3C6FE !important;
+  }
+  .fc-daygrid-day.fc-selected-day .fc-daygrid-day-number {
+    color: #FFFFFF !important;
+    font-weight: 700;
+  }
+
+  /* 週末（日曜・土曜）の文字色 */
+  .fc-day-sat,
+  .fc-day-sun {
+    color: #4FDFFF;
+  }
+}
