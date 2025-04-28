@@ -1,0 +1,29 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ここからモデル定義
+model Todo {
+  id        Int      @id @default(autoincrement())
+  title     String
+  done      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId    Int
+  user      User     @relation("UserTodos", fields: [userId], references: [id])
+}
+
+// 追加で User モデルなど必要に応じて書き足す
+model User {
+  id       Int     @id @default(autoincrement())
+  email    String  @unique
+  username String  @unique
+  todos    Todo[]  @relation("UserTodos")
+}
