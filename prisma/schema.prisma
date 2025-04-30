@@ -4,26 +4,133 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
-
-// ここからモデル定義
-model Todo {
-  id        Int      @id @default(autoincrement())
-  title     String
-  done      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  userId    Int
-  user      User     @relation("UserTodos", fields: [userId], references: [id])
-}
-
-// 追加で User モデルなど必要に応じて書き足す
 model User {
-  id       Int     @id @default(autoincrement())
-  email    String  @unique
-  username String  @unique
-  todos    Todo[]  @relation("UserTodos")
+  id           Int      @id @default(autoincrement())
+  username     String   @unique
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  todos       Todo[]
+  sharedTasks SharedTask[] @relation("OwnerSharedTasks")
+  sharedWith  SharedTask[] @relation("SharedWithTasks")
+
+  sentRequests     FriendRequest[] @relation("sentRequests")
+  receivedRequests FriendRequest[] @relation("receivedRequests")
+  friends          Friend[]        @relation("UserFriends")
+  friendOf         Friend[]        @relation("UserFriendsReverse")
+
+  // ChatRoom のリレーション（参加ユーザー1,2）
+  chatRoomsAsUser1 ChatRoom[] @relation("ChatRoomsAsUser1")
+  chatRoomsAsUser2 ChatRoom[] @relation("ChatRoomsAsUser2")
+
+  // ChatMessage の送信者リレーション
+  sentMessages ChatMessage[] @relation("ChatMessageSender")
+}
+
+model Todo {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  targetDate DateTime // 日付のみとして利用（アプリ側でフォーマット）
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id])
+  items TodoItem[]
+
+  @@unique([userId, targetDate])
+}
+
+model TodoItem {
+  id          Int       @id @default(autoincrement())
+  todoId      Int
+  title       String // タスクの名称・概要
+  description String? // 任意の詳細説明
+  dueTime     DateTime? // オプション：時間指定
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  isDone      Boolean   @default(false)
+
+  todo        Todo         @relation(fields: [todoId], references: [id])
+  sharedTasks SharedTask[]
+}
+
+model SharedTask {
+  id           Int      @id @default(autoincrement())
+  todoItemId   Int
+  ownerId      Int
+  sharedWithId Int
+  permission   String   @default("read")
+  createdAt    DateTime @default(now())
+
+  todoItem   TodoItem @relation(fields: [todoItemId], references: [id])
+  owner      User     @relation("OwnerSharedTasks", fields: [ownerId], references: [id])
+  sharedWith User     @relation("SharedWithTasks", fields: [sharedWithId], references: [id])
+}
+
+// 既存の User/Todo/… の定義はそのまま残します
+
+/// 申請テーブル
+model FriendRequest {
+  id        String        @id @default(cuid())
+  fromId    Int
+  toId      Int
+  status    RequestStatus @default(PENDING)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  from User @relation("sentRequests", fields: [fromId], references: [id])
+  to   User @relation("receivedRequests", fields: [toId], references: [id])
+
+  @@unique([fromId, toId])
+}
+
+/// 承認後に実際のフレンド関係を持つテーブル
+model Friend {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  friendId  Int
+  createdAt DateTime @default(now())
+
+  user   User @relation("UserFriends", fields: [userId], references: [id])
+  friend User @relation("UserFriendsReverse", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+}
+
+model ChatRoom {
+  id      String @id @default(cuid())
+  // 参加ユーザー1
+  user1   User   @relation("ChatRoomsAsUser1", fields: [user1Id], references: [id])
+  user1Id Int
+  // 参加ユーザー2
+  user2   User   @relation("ChatRoomsAsUser2", fields: [user2Id], references: [id])
+  user2Id Int
+
+  createdAt DateTime      @default(now())
+  messages  ChatMessage[]
+
+  @@unique([user1Id, user2Id])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  room      ChatRoom @relation(fields: [roomId], references: [id])
+  roomId    String
+  sender    User     @relation("ChatMessageSender", fields: [senderId], references: [id])
+  senderId  Int
+  content   String
+  createdAt DateTime @default(now())
+}
+
+/// 申請ステータス
+enum RequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }
