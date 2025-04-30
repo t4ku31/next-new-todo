@@ -1,10 +1,10 @@
 // app/components/HeaderToggle.tsx
 'use client';
 
-import {  MessageCircle } from 'lucide-react';
-import { useUiStore } from '@/src/store/useUiStore';
+import { MessageCircle } from 'lucide-react';
+import { useUiStore } from '@/store/useUiStore';
 
-export default function CalendarToggle() {
+export default function ChatToggle() {
   const chattoggle = useUiStore((s) => s.toggleFriendbar);
   return (
     <button
