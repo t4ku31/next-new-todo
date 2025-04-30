@@ -3,32 +3,27 @@
 import { useState, useRef, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useRouter } from 'next/navigation';
-import { useUserStore } from '@/store/useUserStore';
 
 export default function HeaderPulldown() {
-  const { data, isLoading, error } = trpc.user.me.useQuery();
-  const username = useUserStore((s) => s.username);
-  const setUsername = useUserStore((s) => s.setUsername);
-  const clearUsername = useUserStore((s) => s.clearUsername);
+  const utils = trpc.useUtils();
+  // ① userRouter.me を呼び出してユーザー情報を取得
+  const { data: user, isLoading, error } = trpc.user.me.useQuery();
+
+  // ② ログアウト
+  const router = useRouter();
   const logoutMutation = trpc.auth.logout.useMutation({
-    async onSuccess(){
-      clearUsername();
+    async onSuccess() {
+      await utils.user.me.invalidate(); 
       router.push('/');
       setOpen(false);
-    }
+    },
   });
-  const router = useRouter();
 
-  // メニュー開閉用 state
+  // ③ ドロップダウン開閉用
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // セッション取得後に Zustand にセット
-  useEffect(() => {
-    if (data?.username) setUsername(data.username);
-  }, [data, setUsername]);
-
-  // メニュー外クリックで close
+  // ④ クリック外で閉じる
   useEffect(() => {
     function onClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -39,14 +34,16 @@ export default function HeaderPulldown() {
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
 
-  const handleLogout = async () => {
-    await logoutMutation.mutateAsync();
-  };
-
+  // ⑤ ローディング／エラー処理
   if (isLoading) return <p className="text-white">読み込み中…</p>;
-  if (error) return <p className="text-white">エラーが発生しました</p>;
+  if (error)     return <p className="text-white">エラーが発生しました</p>;
+
+  // ⑥ ユーザー名取得（未ログイン時は 'unknown'）
+  const username = user?.username ?? 'unknown';
+
   return (
     <div ref={containerRef} className="relative inline-block text-left">
+      {user ? (
       <button
         onClick={() => setOpen((v) => !v)}
         className="
@@ -57,6 +54,17 @@ export default function HeaderPulldown() {
       >
         {username} <span className="inline-block transform rotate-90">▶</span>
       </button>
+      ):(
+        <button
+        onClick={() => router.push('/login')}
+        className="
+          bg-blue-900 text-white font-medium 
+          px-3 py-1 rounded-md 
+          focus:outline-none focus:ring-2 focus:ring-white
+        ">
+          Login
+        </button>
+      )}
 
       {open && (
         <ul
@@ -67,30 +75,22 @@ export default function HeaderPulldown() {
             overflow-hidden
           "
         >
-          {username === 'unknown' ? (
-            <li>
-              <a
-                href="/Login"
-                className="
-                  block w-full text-left px-4 py-2 
-                  text-gray-700 hover:bg-gray-100
-                "
-                onClick={() => setOpen(false)}
-              >
-                Login
-              </a>
-            </li>
-          ) : (
             <li
-              onClick={handleLogout}
+              onClick={() => logoutMutation.mutateAsync()}
               className="
                 px-4 py-2 text-gray-700 
                 hover:bg-gray-100 cursor-pointer
               "
             >
-              Logout
+             <button
+                  onClick={() => logoutMutation.mutateAsync()}
+                  disabled={logoutMutation.status === 'pending'}
+                  className="w-full text-left px-4 py-2 text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Logout
+                </button>
             </li>
-          )}
+        
         </ul>
       )}
     </div>
