@@ -11,8 +11,8 @@ export async function createContext({
   req:NextApiRequest;
   res:NextApiResponse;
 }){
-  const session = (await getIronSession(req,res, sessionOptions)) as
-    IronSession<UserSession> & Partial<UserSession>;
+  const session = await getIronSession(req, res, sessionOptions);
+
     return {req,res,session,prisma};
 }
 
