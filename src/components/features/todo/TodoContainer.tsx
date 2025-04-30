@@ -1,7 +1,13 @@
 'use client';
-import { useState } from 'react';
+
 import { trpc } from '@/lib/trpc';
+import { useUiStore } from '@/store/useUiStore';
 import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useEffect } from 'react';
+
+
 // フォームの入力スキーマ
 const taskSchema = z.object({
     title:       z.string().min(1),
@@ -20,7 +26,6 @@ export default function TodoContainer() {
     // 3. 日付フィルタ付きでタスク一覧を取得
   const { data: todos = [], isLoading } = trpc.todo.list.useQuery(
     { date: selectedDate },
-    { keepPreviousData: true }
   ); 
 
   // 4. 各種ミューテーション登録。成功時は一覧を再フェッチ
@@ -71,7 +76,7 @@ export default function TodoContainer() {
     <div className="p-4">
       {/* タスク追加フォーム */}
       <form onSubmit={handleSubmit(onSubmit)} className="flex gap-2 mb-4">
-        <TextInput
+        <input
           {...register('title')}
           placeholder="New task"
           className="flex-1 px-4 py-2 border rounded"
