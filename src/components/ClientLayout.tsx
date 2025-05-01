@@ -3,6 +3,7 @@
 import Header from './features/layout/Header';
 import { useUiStore } from '@/store/useUiStore';
 import Calendar from '@/components/features/calendar/CalendarSidebar';
+import FriendContainer from '@/components/features/friend/FriendContainer';
 
 export const ClientLayout:React.FC<{children:React.ReactNode}> =({children})=>{
     const sidebarOpen = useUiStore(s => s.sidebarOpen);
@@ -12,6 +13,7 @@ export const ClientLayout:React.FC<{children:React.ReactNode}> =({children})=>{
         <Header />
         <div className="flex">
             <Calendar />    
+            <FriendContainer />
             <main className={`
                 flex-1 transition-all duration-300
                 ${sidebarOpen ? 'ml-80' : 'ml-0'}
