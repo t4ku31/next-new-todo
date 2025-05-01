@@ -31,7 +31,7 @@
             "**/*.ts", 
             "**/*.tsx", 
             ".next/types/**/*.ts",
-             "src/lib/iron-session.d.ts"
+            "src/lib/**/*.d.ts"
           ],
   "exclude": ["node_modules"]
 }

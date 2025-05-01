@@ -5,7 +5,7 @@ import type { UserSession } from '@/lib/session';
 import { sessionOptions } from '@/lib/session';
 import { getIronSession } from 'iron-session';
 import type { IronSession } from 'iron-session';
-
+import type { Prisma } from '@prisma/client';
 // 登録用スキーマ
 const registerSchema = z.object({
   username: z.string().min(3),
@@ -23,19 +23,29 @@ export const authRouter = router({
   register: publicProcedure
     .input(registerSchema)
     .mutation(async ({ input, ctx }) => {
-      const existing = await ctx.prisma.user.findUnique({
-        where: { email: input.email },
+      const conflict = await ctx.prisma.user.findFirst({
+        where: {
+          OR: [
+            { email:    input.email    },
+            { username: input.username },
+          ],
+        },
       });
-      if (existing) {
-        throw new Error('このメールアドレスは既に使われています');
+      if (conflict) {
+        if (conflict.email === input.email) {
+          throw new Error("このメールアドレスは既に使われています");
+        }
+        // email は違うけど username が一致した場合
+        throw new Error("このユーザー名は既に使われています");
       }
       const passwordHash = await hash(input.password, 10);
+
       const user = await ctx.prisma.user.create({
         data: {
           username:     input.username,
           email:        input.email,
           passwordHash,
-        },
+        }as Prisma.UserCreateInput,
       });
       // セッションに保存
       const session = await getIronSession(
@@ -55,6 +65,13 @@ export const authRouter = router({
     .mutation(async ({ input, ctx }) => {
       const user = await ctx.prisma.user.findUnique({
         where: { email: input.email },
+        select: {
+          id:           true,
+          username:     true,
+          email:        true,
+          passwordHash: true,   // ← ここを追加
+        },
+        
       });
       if (!user || !(await compare(input.password, user.passwordHash))) {
         throw new Error('メールアドレスまたはパスワードが正しくありません');

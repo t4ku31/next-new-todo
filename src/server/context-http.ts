@@ -1,7 +1,7 @@
 import type { NextApiRequest,NextApiResponse} from "next";
 import { getIronSession } from "iron-session";
-import type {IronSession} from "iron-session";
-import { sessionOptions,UserSession} from "@/lib/session";
+import { UserSession } from "@/lib/session";
+import { sessionOptions} from "@/lib/session";
 import { prisma } from "@/lib/prisma";
 
 export async function createContext({
@@ -11,9 +11,14 @@ export async function createContext({
   req:NextApiRequest;
   res:NextApiResponse;
 }){
-  const session = await getIronSession(req, res, sessionOptions);
-
-    return {req,res,session,prisma};
+  const session = await getIronSession<{ user?: UserSession }>(
+    req, 
+    res,
+    sessionOptions
+  );
+  console.log(session);
+  
+  return {req,res,session,prisma};
 }
 
 export type Context = Awaited<ReturnType<typeof createContext>>;
