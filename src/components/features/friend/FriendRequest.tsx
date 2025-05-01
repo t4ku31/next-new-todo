@@ -21,17 +21,20 @@ export default function FriendRequest() {
   if (isLoading) return <p className="text-gray-600">ロード中…</p>;
   if (error)     return <p className="text-red-500">エラーが発生しました</p>;
 
+  
+
+  
   return (
     <section className="bg-gray-50 rounded-lg p-4">
       <h2 className="text-xl font-semibold mb-4">Friend Requests</h2>
       {requests.length > 0 ? (
         <ul className="space-y-2">
-          {requests.map((r: { id: string; username: string }) => (
+          {requests.map((r) => (
             <li
               key={r.id}
               className="flex items-center justify-between bg-white p-3 rounded shadow-sm"
             >
-              <span className="font-medium">{r.username} さんから</span>
+              <span className="font-medium">{r.from.username} さんから</span>
               <div className="flex space-x-2">
                 <button
                   onClick={() =>
@@ -57,4 +60,5 @@ export default function FriendRequest() {
         <p className="text-gray-500">保留中のリクエストはありません。</p>
       )}
     </section>
+  );
 }
