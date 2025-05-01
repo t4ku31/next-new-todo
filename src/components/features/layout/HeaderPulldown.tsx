@@ -56,7 +56,7 @@ export default function HeaderPulldown() {
       </button>
       ):(
         <button
-        onClick={() => router.push('/login')}
+        onClick={() => router.push('/auth/login')}
         className="
           bg-blue-900 text-white font-medium 
           px-3 py-1 rounded-md 
