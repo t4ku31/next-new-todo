@@ -79,7 +79,7 @@ export default function LoginContainer() {
       </form>
       <p className="text-center text-sm mt-4">
         アカウントがない方は{' '}
-        <a href="/register" className="text-blue-600 hover:underline">
+        <a href="/auth/register" className="text-blue-600 hover:underline">
           登録ページ
         </a>
       </p>
