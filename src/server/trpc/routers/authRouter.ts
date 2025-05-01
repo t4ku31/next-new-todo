@@ -1,65 +1,62 @@
-import { router, publicProcedure } from '@/server/trpc';
-import { z } from 'zod';
-import { hash, compare } from 'bcrypt';
-import type { UserSession } from '@/lib/session';
-import { sessionOptions } from '@/lib/session';
-import { getIronSession } from 'iron-session';
-import type { IronSession } from 'iron-session';
-import type { Prisma } from '@prisma/client';
-// 登録用スキーマ
+// src/server/trpc/authRouter.ts
+import { router, publicProcedure } from "@/server/trpc";
+import { z }                     from "zod";
+import { hash, compare }         from "bcrypt";
+import type { UserSession }      from "@/lib/session";
+
+// 👇 Zod スキーマはそのまま
 const registerSchema = z.object({
   username: z.string().min(3),
   email:    z.string().email(),
   password: z.string().min(6),
 });
-// ログイン用スキーマ
 const loginSchema = z.object({
   email:    z.string().email(),
   password: z.string(),
 });
 
 export const authRouter = router({
-  // ユーザー登録
+  // ────────────────────────────────
+  // 1) ユーザー登録
   register: publicProcedure
     .input(registerSchema)
     .mutation(async ({ input, ctx }) => {
-      const conflict = await ctx.prisma.user.findFirst({
+      // Prisma で重複チェック
+    
+      const conflict = await ctx.prisma.user.findUnique({
         where: {
-          OR: [
-            { email:    input.email    },
-            { username: input.username },
-          ],
+          email:    input.email    
         },
       });
+     
       if (conflict) {
         if (conflict.email === input.email) {
           throw new Error("このメールアドレスは既に使われています");
         }
-        // email は違うけど username が一致した場合
         throw new Error("このユーザー名は既に使われています");
       }
+      
+      // ハッシュ化してユーザー作成
       const passwordHash = await hash(input.password, 10);
-
       const user = await ctx.prisma.user.create({
-        data: {
-          username:     input.username,
-          email:        input.email,
-          passwordHash,
-        }as Prisma.UserCreateInput,
+        data: { username: input.username, email: input.email, passwordHash },
       });
-      // セッションに保存
-      const session = await getIronSession(
-        ctx.req,
-        ctx.res,
-        sessionOptions
-      ) as IronSession<UserSession> & { user?: UserSession };
-      const userSession: UserSession = { id: user.id, username: user.username, email: user.email };
-      session.user = userSession;
-      await session.save();
-      return { id: user.id, username: user.username, email: user.email };
+
+      // セッションに書き込んで保存（fetchAdapter 用の shim が Set-Cookie を回収）
+      const me: UserSession = {
+        id:       user.id,
+        username: user.username,
+        email:    user.email,
+      };
+      ctx.session.user = me;
+      await ctx.session.save();
+
+      // クライアントには userSession 情報だけ返す
+      return me;
     }),
 
-  // ログイン
+  // ────────────────────────────────
+  // 2) ログイン
   login: publicProcedure
     .input(loginSchema)
     .mutation(async ({ input, ctx }) => {
@@ -69,38 +66,35 @@ export const authRouter = router({
           id:           true,
           username:     true,
           email:        true,
-          passwordHash: true,   // ← ここを追加
+          passwordHash: true,
         },
-        
       });
       if (!user || !(await compare(input.password, user.passwordHash))) {
-        throw new Error('メールアドレスまたはパスワードが正しくありません');
+        throw new Error("メールアドレスまたはパスワードが正しくありません");
       }
-      // セッションに保存
-      const session = await getIronSession(
-        ctx.req,
-        ctx.res,
-        sessionOptions
-      ) as IronSession<UserSession> & { user?: UserSession };
-      const userSession: UserSession = { id: user.id, username: user.username, email: user.email };
-      session.user = userSession;
-      await session.save();
-      return { id: user.id, username: user.username, email: user.email };
+
+      // セッションへ
+      const me: UserSession = {
+        id:       user.id,
+        username: user.username,
+        email:    user.email,
+      };
+      ctx.session.user = me;
+      await ctx.session.save();
+
+      return me;
     }),
 
-  // 現在ログイン中のユーザー取得
+  // ────────────────────────────────
+  // 3) 認証済みユーザー情報取得
   me: publicProcedure.query(({ ctx }) => {
     return ctx.session.user ?? null;
   }),
 
-  // ログアウト
+  // ────────────────────────────────
+  // 4) ログアウト
   logout: publicProcedure.mutation(async ({ ctx }) => {
-    const session = await getIronSession(
-      ctx.req,
-      ctx.res,
-      sessionOptions
-    );
-    session.destroy();
+    await ctx.session.destroy();
     return true;
   }),
 });

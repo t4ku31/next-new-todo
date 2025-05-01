@@ -1,4 +1,4 @@
-import { createInnerTRPCContext } from "@/server/context-http";
+import { createInnerTRPCContext } from "@/server/context";
 import { appRouter } from "@/server/trpc/index";
 import { cookies } from "next/headers";
 
