@@ -1,9 +1,10 @@
-import { createInnerTRPCContext } from "@/server/context";
-import { appRouter } from "@/server/trpc/index";
-import { cookies } from "next/headers";
+import { createInnerContext } from "@/server/context";
+import { appRouter }     from "@/server/trpc/index";
 
-export async function fetchMe(cookieStore: ReturnType<typeof cookies>) {
-  const ctx = await createInnerTRPCContext({ cookieStore });
-  const caller = appRouter.createCaller(ctx);
-  return caller.auth.me();
+
+export async function fetchMe() {
+
+  const ctx = await createInnerContext();
+  // ⑥ tRPC call
+  return appRouter.createCaller(ctx).auth.me();
 }
