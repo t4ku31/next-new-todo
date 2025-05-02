@@ -5,7 +5,7 @@ import type { UserSession }               from "@/lib/session";
 import { sessionOptions }                  from "@/lib/session";
 import { prisma }                          from "@/lib/prisma";
 import { cookies }                         from "next/headers";
-import { responseCookiesToRequestCookies } from "next/dist/server/web/spec-extension/adapters/request-cookies";
+
 // ---コンテキストの型定義 ---
 export type Context = {
   req:        Request;
@@ -13,13 +13,9 @@ export type Context = {
   session:    IronSession<{ user?: UserSession }>;
   prisma:     typeof prisma;
 };
-//オプション
-export type CreateContextOptions = FetchCreateContextFnOptions & {
-  cookieStore: ReturnType<typeof cookies>;
-};
 
 export async function createContext(
-  opts: CreateContextOptions
+  opts:FetchCreateContextFnOptions
 ): Promise<Context> {            // ← ここで戻り型を明示
 
   const { req, resHeaders } = opts;
