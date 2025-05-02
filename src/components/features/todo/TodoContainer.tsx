@@ -1,6 +1,6 @@
 'use client';
 
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/lib/trpcNext';
 import { useUiStore } from '@/store/useUiStore';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';

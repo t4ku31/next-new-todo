@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/lib/trpcNext';
 import { useRouter } from 'next/navigation';
 
 export default function HeaderPulldown() {

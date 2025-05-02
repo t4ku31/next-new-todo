@@ -1,7 +1,7 @@
 // src/components/features/friend/FriendRequest.tsx
 'use client';
 
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/lib/trpcNext';
 
 export default function FriendRequest() {
   const utils = trpc.useUtils();

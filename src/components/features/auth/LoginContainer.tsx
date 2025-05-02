@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { trpc } from '@/lib/trpc';
+import { trpc } from '@/lib/trpcNext';
 import { useUserStore } from '@/store/useUserStore';
 
 // フォーム入力のスキーマ

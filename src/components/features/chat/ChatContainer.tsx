@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, FormEvent } from 'react';
-import { trpc }                           from '@/lib/trpc';
+import { trpc }                           from '@/lib/trpcNext';
 import type { inferRouterOutputs }        from '@trpc/server';
 import type { AppRouter }                 from '@/server/trpc/index';
 import { useUserStore }                   from '@/store/useUserStore';
