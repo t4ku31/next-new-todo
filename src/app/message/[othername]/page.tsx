@@ -1,25 +1,26 @@
 // src/app/message/[otherUserId]/page.tsx
-import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import ChatContainer from '@/components/features/chat/ChatContainer';
 import { fetchMe } from '@/lib/fetchMe'; // 後述
-import { useEffect, useState } from 'react';
+
+
 
 interface PageProps {
-  params: { otherUserId: string };
+  params: { othername: string };
 }
 
 export default async function Page({ params }: PageProps) {
   // ① セッションから自分のユーザー情報を取得
-  const me = await fetchMe(cookies());
+  
+  const caller = await fetchMe();
+  const me = await caller.user.me();
   if (!me) {
     // 未ログインならログインページへリダイレクト
     redirect('/login');
   }
 
   // ② 他ユーザーの情報をサーバーサイドで取得
-  const otherUserId   = Number(params.otherUserId);
-  const otherUser     = await fetch(`/api/user/${otherUserId}`).then(res => res.json());
+  const otherUser     = await caller.user.search({targetUsername:params.othername});
   if (!otherUser) {
     return <p>ユーザーが見つかりません</p>;
   }
