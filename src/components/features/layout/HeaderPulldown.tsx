@@ -8,13 +8,21 @@ export default function HeaderPulldown() {
   const utils = trpc.useUtils();
   // ① userRouter.me を呼び出してユーザー情報を取得
   const { data: user, isLoading, error } = trpc.user.me.useQuery();
-
+  const [username, setUser] = useState<string>("unknown");
+ 
+  useEffect(() => {
+    if (user) {
+      setUser(user.username);
+    }
+  }, [user]);
   // ② ログアウト
   const router = useRouter();
   const logoutMutation = trpc.auth.logout.useMutation({
     async onSuccess() {
       await utils.user.me.invalidate(); 
+      router.refresh();
       router.push('/');
+      setUser("unknown");
       setOpen(false);
     },
   });
@@ -38,12 +46,10 @@ export default function HeaderPulldown() {
   if (isLoading) return <p className="text-white">読み込み中…</p>;
   if (error)     return <p className="text-white">エラーが発生しました</p>;
 
-  // ⑥ ユーザー名取得（未ログイン時は 'unknown'）
-  const username = user?.username ?? 'unknown';
 
   return (
     <div ref={containerRef} className="relative inline-block text-left">
-      {user ? (
+      {username !== "unknown" ? (
       <button
         onClick={() => setOpen((v) => !v)}
         className="
