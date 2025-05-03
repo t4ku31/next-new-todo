@@ -1,7 +1,8 @@
 'use client';
 
 import { trpc } from '@/lib/trpcClient';
-import Link from 'next/link';
+import { Mail,ListChecks } from 'lucide-react';
+import Link from 'next/link'; 
 
 export default function FriendsContainer() {
 
@@ -21,13 +22,21 @@ export default function FriendsContainer() {
               key={f.id}
               className="flex items-center justify-between bg-white p-3 rounded shadow-sm"
             >
-              <span className="font-medium">{f.friend.username}</span>
-              <Link href={`/message/${f.friend.username}`}>
-                <button className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-500">
-                  Message
-                </button>
-              </Link>
-            </li>
+            <span className="font-medium">{f.friend.username}</span>
+            <div className="flex items-center gap-2 ml-auto">
+            
+            <button className="flex items-center justify-center px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-500">
+              <ListChecks className="w-4 h-4" />
+            </button>
+            
+            <Link href={`/message/${f.friend.username}`}>
+              <button className="flex items-center justify-center px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-500">
+                <Mail className="w-4 h-4" />
+              </button>
+            </Link>
+            
+            </div>
+          </li>
           ))}
         </ul>
       ) : (
