@@ -23,6 +23,7 @@ const startOfDay = (isoDate: string) => {
 /* -------------------- Zod スキーマ -------------------- */
 const dateSchema   = z.object({ date: z.string() });
 const idDateSchema = z.object({ id: z.number(), date: z.string() });
+const idDateIsDoneSchema = z.object({ id: z.number(), date: z.string(), isDone: z.boolean() });
 const addSchema    = z.object({
   date: z.string(),
   title: z.string().min(1),
@@ -81,7 +82,7 @@ export const todoRouter = router({
 
   /* ③ 完了フラグのトグル ---------------------------------- */
   clearTodo: publicProcedure
-    .input(idDateSchema)
+    .input(idDateIsDoneSchema)
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
@@ -95,15 +96,10 @@ export const todoRouter = router({
       });
       if (!todo) throw new TRPCError({ code: "NOT_FOUND", message: "Todo が見つかりません" });
 
-      const item = await prisma.todoItem.findUnique({
-        where: { id: input.id, todoId: todo.id },
-      });
-      if (!item) throw new TRPCError({ code: "NOT_FOUND", message: "タスクが見つかりません" });
-
       // isDone を反転
       await prisma.todoItem.update({
-        where: { id: item.id },
-        data:  { isDone: !item.isDone },
+        where: { id: input.id },
+        data:  { isDone: !input.isDone },
       });
 
       const latest = await prisma.todo.findUnique({
