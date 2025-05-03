@@ -1,7 +1,7 @@
 // src/app/api/trpc/[trpc]/route.ts
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter }            from "@/server/trpc/index";
-import { createContext }        from "@/server/context";
+import { createContext }        from "@/server/context.server";
 
 export async function GET(request: Request) {
   return fetchRequestHandler({

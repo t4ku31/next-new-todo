@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState, FormEvent } from 'react';
-import { trpc }                           from '@/lib/trpcNext';
+import { trpc }                       from '@/lib/trpcClient';
 import type { inferRouterOutputs }        from '@trpc/server';
 import type { AppRouter }                 from '@/server/trpc/index';
-import { useUserStore }                   from '@/store/useUserStore';
+
+import { createInnerContext }             from '@/server/context.server';
 
 type Message = inferRouterOutputs<AppRouter>['chat']['listMessages'][number];
 
@@ -13,11 +14,17 @@ interface ChatContainerProps {
     otherUsername: string;
   }
 
-export default function ChatContainer({
+export default async function ChatContainer({
     otherUserId,
     otherUsername,
   }: ChatContainerProps) {
-    const me = useUserStore((s) => s.user)!;
+    // サーバー側でのコンテキストを作成
+    const ctx = await createInnerContext();
+    // セッションからユーザー情報を取得
+    const me = ctx.session?.user;
+    if (!me) {
+        throw new Error('ログインしてください');
+    }
     const utils = trpc.useUtils();
 
     const getRoom = trpc.chat.getOrCreateRoom.useMutation({
@@ -77,7 +84,7 @@ export default function ChatContainer({
         
         <header className="px-4 py-2 bg-gray-100 border-b">
             <h2 className="text-lg font-medium">{otherUsername}</h2>
-      　</header>
+      </header>
 
       {/* メッセージ一覧 */}
       <ul className="flex-1 overflow-y-auto p-4 space-y-3">
