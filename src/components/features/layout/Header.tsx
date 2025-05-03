@@ -1,7 +1,7 @@
 "use client";
 import HeaderPulldown from "./HeaderPulldown";
 import CalendarToggle from "./CalendarToggle";
-import ChatToggle from "./ChatToggle"
+import FriendToggle from "./FriendToggle"
 import { useUiStore } from "@/store/useUiStore";
 
 export default function Header() {
@@ -22,7 +22,7 @@ export default function Header() {
          
           <HeaderPulldown />
           
-        <ChatToggle/>
+        <FriendToggle/>
           
         </div>
   
