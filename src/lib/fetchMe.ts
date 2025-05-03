@@ -1,4 +1,4 @@
-import { createInnerContext } from "@/server/context";
+import { createInnerContext } from "@/server/context.server";
 import { appRouter }     from "@/server/trpc/index";
 
 
