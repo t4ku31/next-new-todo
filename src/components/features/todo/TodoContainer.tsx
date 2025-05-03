@@ -1,6 +1,6 @@
 'use client';
 
-import { trpc } from '@/lib/trpcNext';
+import { trpc } from '@/lib/trpcClient';
 import { useUiStore } from '@/store/useUiStore';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
@@ -24,19 +24,19 @@ export default function TodoContainer() {
   const utils = trpc.useUtils();  
 
     // 3. 日付フィルタ付きでタスク一覧を取得
-  const { data: todos = [], isLoading } = trpc.todo.list.useQuery(
+  const { data: todos = [], isLoading } = trpc.todo.getTasksByDate.useQuery(
     { date: selectedDate },
   ); 
 
   // 4. 各種ミューテーション登録。成功時は一覧を再フェッチ
-  const createTodo = trpc.todo.create.useMutation({
-    onSuccess: () => utils.todo.list.invalidate(),
+  const addTodo = trpc.todo.addTodo.useMutation({
+    onSuccess: () => utils.todo.getTasksByDate.invalidate(),
   });
-  const updateTodo = trpc.todo.update.useMutation({
-    onSuccess: () => utils.todo.list.invalidate(),
+  const clearTodo = trpc.todo.clearTodo.useMutation({
+    onSuccess: () => utils.todo.getTasksByDate.invalidate(),
   });
-  const deleteTodo = trpc.todo.delete.useMutation({
-    onSuccess: () => utils.todo.list.invalidate(),
+  const deleteTodo = trpc.todo.deleteTodo.useMutation({
+    onSuccess: () => utils.todo.getTasksByDate.invalidate(),
   });
 
    // 5. React Hook Form でフォームを管理。date は selectedDate が初期値
@@ -58,7 +58,7 @@ export default function TodoContainer() {
 
   const onSubmit = async (data: TaskFormData) => {
     try {
-      await createTodo.mutateAsync({
+      await addTodo.mutateAsync({
         title:       data.title,
         description: data.description,
         date:        data.date,
@@ -68,7 +68,11 @@ export default function TodoContainer() {
       console.error('タスク作成エラー:', e);
     }
   };
-
+  const sortedTodos = [...todos].sort((a, b) => {
+    // false → 0, true → 1 になるので、未完了(false)が前に来る
+    return (a.isDone ? 1 : 0) - (b.isDone ? 1 : 0);
+  });
+  
    // 読み込み中はローディング表示
    if (isLoading) return <p>Loading...</p>;
 
@@ -96,21 +100,27 @@ export default function TodoContainer() {
 
       {/* タスク一覧 */}
       <ul className="space-y-2">
-        {todos.map((t) => (
-          <li key={t.id} className="flex items-center gap-2">
+        {sortedTodos.map((t: any) => (
+          <li
+            key={t.id}
+            className={`
+              flex items-center gap-2 p-2 rounded
+              ${t.isDone ? 'bg-gray-100' : ''}
+            `}
+          >
             <input
               type="checkbox"
-              checked={t.done}
-              onChange={(e) =>
-                updateTodo.mutate({ id: t.id, done: e.target.checked })
+              checked={t.isDone}
+              onChange={() =>
+                clearTodo.mutate({ id: t.id, date: selectedDate, isDone: t.isDone })
               }
               className="w-4 h-4"
             />
-            <span className={t.done ? 'line-through text-muted' : ''}>
+            <span className={t.isDone ? 'line-through text-gray-500' : ''}>
               {t.title}
             </span>
             <button
-              onClick={() => deleteTodo.mutate({ id: t.id })}
+              onClick={() => deleteTodo.mutate({ id: t.id, date: selectedDate })}
               className="ml-auto text-red-500 hover:text-red-700"
             >
               Delete
