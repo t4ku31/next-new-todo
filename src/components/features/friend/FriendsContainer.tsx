@@ -1,6 +1,6 @@
 'use client';
 
-import { trpc } from '@/lib/trpcNext';
+import { trpc } from '@/lib/trpcClient';
 import Link from 'next/link';
 
 export default function FriendsContainer() {
@@ -16,7 +16,7 @@ export default function FriendsContainer() {
       <h2 className="text-xl font-semibold mb-4">Friends</h2>
       {friends.length > 0 ? (
         <ul className="space-y-2">
-          {friends.map((f) => (
+          {friends.map((f: any) => (
             <li
               key={f.id}
               className="flex items-center justify-between bg-white p-3 rounded shadow-sm"
