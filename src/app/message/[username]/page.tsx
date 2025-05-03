@@ -6,7 +6,7 @@ import { fetchMe } from '@/lib/fetchMe'; // 後述
 
 
 interface PageProps {
-  params: { othername: string };
+  params: { username: string };
 }
 
 export default async function Page({ params }: PageProps) {
@@ -20,7 +20,7 @@ export default async function Page({ params }: PageProps) {
   }
 
   // ② 他ユーザーの情報をサーバーサイドで取得
-  const otherUser     = await caller.user.search({targetUsername:params.othername});
+  const otherUser     = await caller.user.search({targetUsername: params.username});
   if (!otherUser) {
     return <p>ユーザーが見つかりません</p>;
   }
