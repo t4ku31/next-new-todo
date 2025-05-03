@@ -68,11 +68,11 @@ export default function TodoContainer() {
       console.error('タスク作成エラー:', e);
     }
   };
+  // タスクを完了順にソート
   const sortedTodos = [...todos].sort((a, b) => {
-    // false → 0, true → 1 になるので、未完了(false)が前に来る
     return (a.isDone ? 1 : 0) - (b.isDone ? 1 : 0);
   });
-  
+
    // 読み込み中はローディング表示
    if (isLoading) return <p>Loading...</p>;
 
