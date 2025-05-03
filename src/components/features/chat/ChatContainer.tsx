@@ -4,7 +4,8 @@ import { useEffect, useState, FormEvent } from 'react';
 import { trpc }                       from '@/lib/trpcClient';
 import type { inferRouterOutputs }        from '@trpc/server';
 import type { AppRouter }                 from '@/server/trpc/index';
-
+import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 type Message = inferRouterOutputs<AppRouter>['chat']['listMessages'][number];
 
 interface ChatContainerProps {
@@ -90,9 +91,14 @@ export default function ChatContainer({
 
   return (
     <div className="relative flex flex-col h-screen border rounded-lg overflow-hidden">
-        <header className="px-4 py-2 bg-gray-100 border-b">
-            <h2 className="text-lg font-medium">{otherUsername}</h2>
-      </header>
+    <header className="relative flex items-center justify-center px-4 py-2 bg-gray-100 border-b">
+      <Link href={`/`}>
+        <button className="absolute left-4 text-gray-600 hover:text-gray-800">
+          <ArrowLeft className="w-6 h-6" />
+        </button>
+      </Link>
+      <h2 className="text-lg font-medium">{otherUsername}</h2>
+    </header>
 
       {/* メッセージ一覧 */}
       <ul className="flex-1 overflow-y-auto p-4 space-y-3 pb-20">
@@ -103,6 +109,7 @@ export default function ChatContainer({
               key={m.id}
               className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
             >
+
               <div
                 className={`max-w-xs px-3 py-2 rounded-lg ${
                   isMe
