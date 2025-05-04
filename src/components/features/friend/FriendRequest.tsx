@@ -1,7 +1,7 @@
 // src/components/features/friend/FriendRequest.tsx
 'use client';
 
-import { trpc } from '@/lib/trpcNext';
+import { trpc } from '@/lib/trpcClient';
 
 export default function FriendRequest() {
   const utils = trpc.useUtils();
@@ -21,15 +21,12 @@ export default function FriendRequest() {
   if (isLoading) return <p className="text-gray-600">ロード中…</p>;
   if (error)     return <p className="text-red-500">エラーが発生しました</p>;
 
-  
-
-  
   return (
     <section className="bg-gray-50 rounded-lg p-4">
       <h2 className="text-xl font-semibold mb-4">Friend Requests</h2>
       {requests.length > 0 ? (
         <ul className="space-y-2">
-          {requests.map((r) => (
+          {requests.map((r: any) => (
             <li
               key={r.id}
               className="flex items-center justify-between bg-white p-3 rounded shadow-sm"
