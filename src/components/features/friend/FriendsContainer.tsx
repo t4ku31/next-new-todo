@@ -24,11 +24,12 @@ export default function FriendsContainer() {
             >
             <span className="font-medium">{f.friend.username}</span>
             <div className="flex items-center gap-2 ml-auto">
-            
+           
+            <Link href={`/friendtodo/${f.friend.username}`}>
             <button className="flex items-center justify-center px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-500">
               <ListChecks className="w-4 h-4" />
             </button>
-            
+            </Link>
             <Link href={`/message/${f.friend.username}`}>
               <button className="flex items-center justify-center px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-500">
                 <Mail className="w-4 h-4" />
