@@ -13,15 +13,14 @@ export type Context = {
   session:    IronSession<{ user?: UserSession }>;
   prisma:     typeof prisma;
 };
-
 export async function createContext(
   opts:FetchCreateContextFnOptions
 ): Promise<Context> {            // ← ここで戻り型を明示
+  //リクエストヘッダーとレスポンスヘッダーを取得
+  const { req } = opts;
 
-  const { req, resHeaders } = opts;
 
-
-  //クライアントに返すヘッダーをためる
+  //クライアントに返すヘッダーを格納用
   const headerStore = new Headers();
 
   // headerStoreを使って、headersを操作するためのshim
@@ -31,15 +30,15 @@ export async function createContext(
     //headerStoreにcookieをセット
     setHeader: (key: string, val: string) => headerStore.set(key, val),
   } as any;
-  
-  await getIronSession(req as any, resShim, sessionOptions); 
 
+  //cookieを取得から既存のsessionを取得
   const session = await getIronSession<{ user?: UserSession }>(
     req as any,
     resShim,
     sessionOptions
   );
-
-  return { req, resHeaders, session, prisma};
+  //sessionを返すとprismaクライアントを返す
+  return { req, resHeaders:headerStore, session, prisma};
 }
+
 

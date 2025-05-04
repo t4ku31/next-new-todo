@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { trpc } from '@/lib/trpcNext';
-import { useUserStore } from '@/store/useUserStore';
+import { trpc } from '@/lib/trpcClient';
+
 
 // フォーム入力のスキーマ
 const loginSchema = z.object({
@@ -17,12 +17,11 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginContainer() {
   const router = useRouter();
-  const setUser = useUserStore((state) => state.setUser);
+
 
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (data) => {
       if (data) {
-        setUser({ id: data.id, username: data.username });
         router.push('/');
       }
     },
