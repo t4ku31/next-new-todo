@@ -28,35 +28,24 @@ export function createTRPCClient() {
       splitLink({
         //通信経路を分岐する条件
         condition(op) {
+          console.log("condition", op);
           return op.type === 'subscription';
         },
         // subscription は WebSocket 経由。transformer もここで指定
         true: wsLink({ client: wsClient, transformer: superjson }),
 
         // query/mutation は HTTP batch。transformer もここで指定
-        false: httpBatchLink({ url: '/api/trpc', transformer: superjson }),
+        //クエリをまとめて送信できる(httpBatchLink)
+        false: httpBatchLink({ 
+          url: '/api/trpc',//送り先
+          fetch: (input,init) => {
+            //「サーバーの Set-Cookie を受け取り」「以降のリクエストに Cookie を自動送信」させる
+            return fetch(input,{...init,credentials:'include'})
+          },
+      
+          transformer: superjson 
+        }),
       }),
     ],
   });
 }
-
-/*
-condition(op)の "op" の中身
-interface Operation<TInput = unknown> {
-
-   'query' | 'mutation' | 'subscription' 
-  type: OperationType;
-
-  ルーター上のメソッド名 ('user.getById' など)
-  path: string;
-
-   クライアントが渡したパラメータ 
-  input: TInput;
-
-   WebSocket 用に一意になる ID（sub のときだけ）
-  id?: number;
-
-   内部用コンテキスト（SSR 時など） 
-  context?: any;
-
-*/
