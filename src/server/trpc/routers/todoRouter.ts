@@ -39,8 +39,9 @@ export const todoRouter = router({
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
 
-      const targetDate = startOfDay(input.date);
-
+      const [year, month, day] = input.date.split('-').map(Number);
+      const targetDate = new Date(Date.UTC(year, month - 1, day));
+     
       // Todo を upsert
       const todo = await prisma.todo.upsert({
         where:  { userId_targetDate: { userId, targetDate } },
@@ -72,7 +73,9 @@ export const todoRouter = router({
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
 
-      const targetDate = startOfDay(input.date);
+      const [year, month, day] = input.date.split('-').map(Number);
+      const targetDate = new Date(Date.UTC(year, month - 1, day));
+
       const todo = await prisma.todo.findUnique({
         where:   { userId_targetDate: { userId, targetDate } },
         include: { items: true },
@@ -87,7 +90,8 @@ export const todoRouter = router({
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
 
-      const targetDate = startOfDay(input.date);
+      const [year, month, day] = input.date.split('-').map(Number);
+      const targetDate = new Date(Date.UTC(year, month - 1, day));
 
       // Todo と TodoItem を取得
       const todo = await prisma.todo.findUnique({
@@ -116,7 +120,8 @@ export const todoRouter = router({
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
 
-      const targetDate = startOfDay(input.date);
+      const [year, month, day] = input.date.split('-').map(Number);
+      const targetDate = new Date(Date.UTC(year, month - 1, day));
 
       const todo = await prisma.todo.findUnique({
         where:   { userId_targetDate: { userId, targetDate } },
@@ -134,4 +139,30 @@ export const todoRouter = router({
       });
       return latest?.items ?? [];
     }),
+
+    getTodoByUserId:publicProcedure
+    .input(z.object({
+      userId:z.number(),
+      targetDate:z.string(),
+    }))
+    .query(async({input,ctx})=>{
+      const userId = ctx.session.user?.id;
+      ensureLogin(userId);
+      console.log("getTodoByUserId", input);
+      const [year, month, day] = input.targetDate.split('-').map(Number);
+      const targetDate = new Date(Date.UTC(year, month - 1, day));
+
+      const todos = await prisma.todo.findUnique({
+        where:{
+          userId_targetDate:{
+            userId:input.userId,
+            targetDate:targetDate,
+          },
+        },
+        include:{
+          items:true,
+        },
+      });
+      return todos?.items ?? [];
+    })
 });
