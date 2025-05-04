@@ -1,4 +1,7 @@
 // src/app/api/trpc/[trpc]/route.ts
+export const runtime = 'nodejs';
+
+
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter }            from "@/server/trpc/index";
 import { createContext }        from "@/server/context";
