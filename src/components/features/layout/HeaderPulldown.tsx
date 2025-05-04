@@ -53,8 +53,8 @@ export default function HeaderPulldown() {
       <button
         onClick={() => setOpen((v) => !v)}
         className="
-          bg-blue-900 text-white font-medium 
-          px-3 py-1 rounded-md 
+          bg-blue-700 text-white font-medium 
+          px-3 py-1 rounded-md hover:bg-blue-500
           focus:outline-none focus:ring-2 focus:ring-white
         "
       >

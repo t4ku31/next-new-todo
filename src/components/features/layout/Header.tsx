@@ -8,7 +8,7 @@ export default function Header() {
   const selectedDate = useUiStore((s)=> s.selectedDate);
 
   return (
-    <header className="bg-blue-900 p-4">
+    <header className="bg-blue-600 p-4">
       <nav className="container mx-auto flex justify-between items-center">
     
         <CalendarToggle/>
