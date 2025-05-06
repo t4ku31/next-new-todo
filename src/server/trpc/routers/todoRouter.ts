@@ -23,6 +23,7 @@ const startOfDay = (isoDate: string) => {
 /* -------------------- Zod スキーマ -------------------- */
 const dateSchema   = z.object({ date: z.string() });
 const idDateSchema = z.object({ id: z.number(), date: z.string() });
+const updateSchema = z.object({ id: z.number(), title: z.string() ,todoId:z.number()});
 const idDateIsDoneSchema = z.object({ id: z.number(), date: z.string(), isDone: z.boolean() });
 const addSchema    = z.object({
   date: z.string(),
@@ -164,5 +165,19 @@ export const todoRouter = router({
         },
       });
       return todos?.items ?? [];
-    })
+    }),
+
+  updateTodo: publicProcedure
+    .input(updateSchema)
+    .mutation(async ({ input, ctx }) => {
+      const userId = ctx.session.user?.id;
+      ensureLogin(userId);
+      console.log("updateTodo=====", input);
+      await prisma.todoItem.update({
+        where: { id: input.id, todoId: input.todoId },
+        data: { title: input.title },
+      });
+
+      return true;
+    }),
 });

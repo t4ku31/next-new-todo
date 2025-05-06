@@ -1,27 +1,32 @@
 'use client';
 
 import Header from './features/layout/Header';
-import { useUiStore } from '@/store/useUiStore';
-import Calendar from '@/components/features/calendar/CalendarSidebar';
+import CalendarSidebar from '@/components/features/calendar/CalendarSidebar';
 import FriendContainer from '@/components/features/friend/FriendContainer';
 
-export const ClientLayout:React.FC<{children:React.ReactNode}> =({children})=>{
-    const sidebarOpen = useUiStore(s => s.sidebarOpen);
-
-    return(
-        <div className="overflow-x-hidden">
-        <Header />
-        <div className="flex">
-            <Calendar />    
-            <FriendContainer />
-            <main className={`
-                flex-1 transition-all duration-300
-                ${sidebarOpen ? 'ml-80' : 'ml-0'}
-                p-6
-            `}>  
-            {children}
-            </main>
-        </div>
-    </div>
-   );
+interface ClientLayoutProps {
+  children: React.ReactNode;
 }
+
+export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
+  return (
+    <div className="flex flex-col h-screen overflow-x-hidden">
+      {/* 1. ヘッダー */}
+      <Header />
+
+      {/* 2. 本文エリア: カレンダーは fixed or dropdown で表示 */}
+      <div className="flex flex-1">
+        {/* カレンダーサイドバー */}
+        <CalendarSidebar />
+
+        {/* フレンド一覧 */}
+        <FriendContainer />
+
+        {/* メインコンテンツ */}
+        <main className="flex-1 p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  );
+};
