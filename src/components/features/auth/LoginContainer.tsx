@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { trpc } from '@/lib/trpcClient';
-
+import { useState } from 'react';
 
 // フォーム入力のスキーマ
 const loginSchema = z.object({
@@ -19,11 +19,15 @@ export default function LoginContainer() {
   const router = useRouter();
 
 
+  const [error, setError] = useState<string | null>(null);
   const loginMutation = trpc.auth.login.useMutation({
     onSuccess: (data) => {
       if (data) {
         router.push('/');
       }
+    },
+    onError: (error) => {
+      setError(error.message);  
     },
   });
 
@@ -46,6 +50,9 @@ export default function LoginContainer() {
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow rounded-lg">
       <h2 className="text-2xl font-semibold mb-4 text-center">ログイン</h2>
+      {error && (
+        <p className="text-red-500 text-sm">{error}</p>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <input
