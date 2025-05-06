@@ -5,52 +5,52 @@ import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 
-import type {
-  DateClickArg,
-} from '@fullcalendar/interaction';
+import type { DateClickArg } from '@fullcalendar/interaction';
 import { useUiStore, UIState } from '@/store/useUiStore';
-
-/** Date → 'YYYY-MM-DD'（ローカル基準）に変換 */
-const toYMD = (d: Date): string => {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${y}-${m}-${dd}`;
-};　
 
 export default function CalendarSidebar() {
   const sidebarOpen     = useUiStore((s: UIState) => s.sidebarOpen);
   const setSelectedDate = useUiStore((s: UIState) => s.setSelectedDate);
   const selectedDate    = useUiStore((s: UIState) => s.selectedDate); // 'YYYY-MM-DD'
 
-  /* クリックした日付 → Zustand に保存（dateStr は既に 'YYYY-MM-DD'） */
+  // 日付クリック時に Zustand に保存
   const handleDateClick = (arg: DateClickArg) => {
     setSelectedDate(arg.dateStr);
+  };
+
+  // 選択セルにクラスを付与
+  const dayCellClassNames = (arg: any) => {
+    const d = arg.date;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const cellYmd = `${y}-${m}-${dd}`;
+    return cellYmd === selectedDate ? ['my-selected-day'] : [];
   };
 
   return (
     <aside
       className={`
-        fixed left-0 top-16 bottom-0 w-96 z-20
-        bg-white border-r shadow-lg
-        transform transition-transform duration-300
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-        overflow-y-auto
+        fixed top-20 left-0 w-96 z-20 bg-white shadow-lg
+        overflow-hidden transform transition-all duration-300 ease-in-out
+        ${sidebarOpen
+          ? 'max-h-[80vh] translate-y-0 overflow-y-auto'
+          : 'max-h-0 -translate-y-full'}
       `}
     >
       <FullCalendar
         key={selectedDate}
-        contentHeight="auto"
-        aspectRatio={1.2}
         plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
         initialView="dayGridMonth"
+        contentHeight="auto"
+        aspectRatio={1.2}
         headerToolbar={{
           left: 'prev,next',
           center: 'title',
           right: 'today',
         }}
         dateClick={handleDateClick}
-        dayCellClassNames={['fc-day']}
+        dayCellClassNames={dayCellClassNames}
       />
     </aside>
   );
