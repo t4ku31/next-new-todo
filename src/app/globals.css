@@ -6,8 +6,8 @@
 
 /* 1) ツールバー全体のマージン／パディング */
 .fc-toolbar {
-  margin: 0.5rem 0;    /* 上下 0.5rem */
-  padding: 1rem 0 0;   /* 上 1rem、下はデフォルト詰め */
+  margin: 0.5rem 0;         /* 上下 0.5rem */
+  padding: 1rem 0 0;        /* 上 1rem、下はデフォルト */
 }
 
 /* 2) ツールバー内レイアウト */
@@ -30,21 +30,21 @@
 .fc-button.fc-prev-button,
 .fc-button.fc-next-button,
 .fc-button.fc-today-button {
-  background-color: #2563eb !important;  /* bg-blue-600 */
+  background-color: #2563eb !important; /* bg-blue-600 */
   color: #fff !important;
   border: none !important;
-  font-size: 0.875rem;  /* sm */
-  margin: 0 0.25rem;
+  font-size: 0.875rem !important; /* sm */
+  margin: 0 0.25rem !important;
 }
 .fc-button.fc-prev-button:hover,
 .fc-button.fc-next-button:hover {
-  background-color: #3573f6 !important;  /* bg-blue-700 */
+  background-color: #3573f6 !important; /* bg-blue-700 */
 }
 
 /* 4) タイトル */
 .fc-toolbar-title {
   display: inline-block;
-  background-color: #2563eb;  /* bg-blue-600 */
+  background-color: #2563eb; /* bg-blue-600 */
   color: #fff;
   font-weight: bold;
   padding: 0.25rem 1rem;
@@ -60,14 +60,14 @@
 .fc .fc-col-header-cell {
   background: transparent;
   border: none;
-  color: #2563eb;        /* text-blue-600 */
+  color: #2563eb;      /* text-blue-600 */
   font-weight: 600;
-  font-size: 0.875rem;   /* sm */
+  font-size: 0.875rem; /* sm */
 }
 
-/* 6) セル枠＆余白リセット */
+/* 6) 日付セルの枠＆余白リセット */
 .fc .fc-daygrid-body td {
-  border: 1px solid #f3f4f6;  /* border-gray-100 */
+  border: 1px solid #f3f4f6; /* border-gray-100 */
 }
 .fc .fc-daygrid-day-frame {
   display: flex !important;
@@ -81,7 +81,7 @@
 .fc .fc-daygrid-day-number {
   margin: 0 !important;
   font-size: 1rem;
-  color: #1e40af;        /* text-blue-800 */
+  color: #1e40af;      /* text-blue-800 */
   text-align: center;
   line-height: 1 !important;
 }
@@ -93,28 +93,22 @@
   justify-content: center;
   width: 1.5em;
   height: 1.5em;
-  background-color: #2b7bfd;  /* bg-blue-500 */
+  background-color: #2b7bfd; /* bg-blue-500 */
   color: #fff;
   border-radius: 9999px;
 }
 
-/* 9) クリック選択日のハイライト */
-td.fc-daygrid-day.my-selected-day {
-  /* セル全体を丸背景にしたい場合は以下を有効に */
-  /* 
-  > .fc-daygrid-day-frame {
-    background-color: #75cfff !important;
-    border-radius: 9999px !important;
-  }
-  */
-}
+/*==============================================================================
+  9) クリック選択日のハイライト
+==============================================================================*/
+/* 数字部分を丸く目立たせる */
 td.fc-daygrid-day.my-selected-day .fc-daygrid-day-number {
   display: inline-flex !important;
   align-items: center;
   justify-content: center;
   width: 1.5em;
   height: 1.5em;
-  background-color: #75cfff;  /* 任意のブルー */
-  color: #fff;
-  border-radius: 9999px;
+  background-color: #75cfff !important; /* 任意のブルー */
+  color: #fff !important;
+  border-radius: 9999px !important;
 }
