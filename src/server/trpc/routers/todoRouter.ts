@@ -1,183 +1,148 @@
-// src/server/trpc/routers/todoRouter.ts
 import { router, publicProcedure } from "@/server/trpc";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@/lib/prisma";
 
-/* -------------------- 共通ユーティリティ -------------------- */
-function ensureLogin  (userId: number | undefined): asserts userId is number {
+/**
+ * ユーザーがログインしていることを保証
+ */
+function ensureLogin(userId: number | undefined): asserts userId is number {
   if (userId == null) {
-    throw new TRPCError({ 
-      code: "UNAUTHORIZED", 
-      message: "ログインしてください" 
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "ログインしてください",
     });
   }
-};
+}
 
-const startOfDay = (isoDate: string) => {
-  const d = new Date(isoDate);
-  d.setHours(0, 0, 0, 0);
-  return d;
-};
+/**
+ * 日付文字列(YYYY-MM-DD)からその日の00:00:00 UTC Date を返す
+ */
+function parseTargetDate(isoDate: string): Date {
+  const [year, month, day] = isoDate.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day));
+}
 
-/* -------------------- Zod スキーマ -------------------- */
-const dateSchema   = z.object({ date: z.string() });
+// 入力スキーマ定義
+const dateSchema = z.object({ date: z.string() });
 const idDateSchema = z.object({ id: z.number(), date: z.string() });
-const updateSchema = z.object({ id: z.number(), title: z.string() ,todoId:z.number()});
 const idDateIsDoneSchema = z.object({ id: z.number(), date: z.string(), isDone: z.boolean() });
-const addSchema    = z.object({
-  date: z.string(),
-  title: z.string().min(1),
-  description: z.string().optional(),
-});
+const addSchema = z.object({ title: z.string().min(1, { message: "タスク名を入力してください" }), description: z.string().optional(), date: z.string() });
+const updateSchema = z.object({ id: z.number(), todoId: z.number(), title: z.string() });
 
-/* -------------------- ルーター本体 -------------------- */
+// ルーター定義
 export const todoRouter = router({
-  /* ① 追加 -------------------------------------------------- */
+  // タスク追加
   addTodo: publicProcedure
     .input(addSchema)
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
 
-      const [year, month, day] = input.date.split('-').map(Number);
-      const targetDate = new Date(Date.UTC(year, month - 1, day));
-     
-      // Todo を upsert
+      const targetDate = parseTargetDate(input.date);
+
+      // Todo テーブルに upsert
       const todo = await prisma.todo.upsert({
-        where:  { userId_targetDate: { userId, targetDate } },
+        where: { userId_targetDate: { userId, targetDate } },
         create: { userId, targetDate },
         update: {},
       });
 
-      // TodoItem を作成
+      // TodoItem 作成
       await prisma.todoItem.create({
-        data: {
-          todoId:      todo.id,
-          title:       input.title,
-          description: input.description,
-        },
+        data: { todoId: todo.id, title: input.title, description: input.description },
       });
 
-      // 最新一覧を返す
-      const latest = await prisma.todo.findUnique({
-        where:   { userId_targetDate: { userId, targetDate } },
+      // 最新アイテム一覧を返却
+      const result = await prisma.todo.findUnique({
+        where: { userId_targetDate: { userId, targetDate } },
         include: { items: true },
       });
-      return latest?.items ?? [];
+      return result?.items ?? [];
     }),
 
-  /* ② 指定日のタスク取得 ---------------------------------- */
+  // 指定日のタスク一覧取得
   getTasksByDate: publicProcedure
     .input(dateSchema)
     .query(async ({ input, ctx }) => {
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
+      const targetDate = parseTargetDate(input.date);
 
-      const [year, month, day] = input.date.split('-').map(Number);
-      const targetDate = new Date(Date.UTC(year, month - 1, day));
-
-      const todo = await prisma.todo.findUnique({
-        where:   { userId_targetDate: { userId, targetDate } },
+      const result = await prisma.todo.findUnique({
+        where: { userId_targetDate: { userId, targetDate } },
         include: { items: true },
       });
-      return todo?.items ?? [];
+      return result?.items ?? [];
     }),
 
-  /* ③ 完了フラグのトグル ---------------------------------- */
+  // 完了フラグのトグル
   clearTodo: publicProcedure
     .input(idDateIsDoneSchema)
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
+      const targetDate = parseTargetDate(input.date);
 
-      const [year, month, day] = input.date.split('-').map(Number);
-      const targetDate = new Date(Date.UTC(year, month - 1, day));
-
-      // Todo と TodoItem を取得
       const todo = await prisma.todo.findUnique({
-        where:   { userId_targetDate: { userId, targetDate } },
-        include: { items: true },
+        where: { userId_targetDate: { userId, targetDate } },
       });
       if (!todo) throw new TRPCError({ code: "NOT_FOUND", message: "Todo が見つかりません" });
 
-      // isDone を反転
-      await prisma.todoItem.update({
-        where: { id: input.id },
-        data:  { isDone: !input.isDone },
-      });
+      // フラグ反転
+      await prisma.todoItem.update({ where: { id: input.id }, data: { isDone: !input.isDone } });
 
-      const latest = await prisma.todo.findUnique({
-        where:   { userId_targetDate: { userId, targetDate } },
+      const result = await prisma.todo.findUnique({
+        where: { userId_targetDate: { userId, targetDate } },
         include: { items: true },
       });
-      return latest?.items ?? [];
+      return result?.items ?? [];
     }),
 
-  /* ④ タスク削除 ------------------------------------------ */
+  // タスク削除
   deleteTodo: publicProcedure
     .input(idDateSchema)
     .mutation(async ({ input, ctx }) => {
       const userId = ctx.session.user?.id;
       ensureLogin(userId);
-
-      const [year, month, day] = input.date.split('-').map(Number);
-      const targetDate = new Date(Date.UTC(year, month - 1, day));
+      const targetDate = parseTargetDate(input.date);
 
       const todo = await prisma.todo.findUnique({
-        where:   { userId_targetDate: { userId, targetDate } },
-        include: { items: true },
+        where: { userId_targetDate: { userId, targetDate } },
       });
       if (!todo) throw new TRPCError({ code: "NOT_FOUND", message: "Todo が見つかりません" });
 
-      await prisma.todoItem.delete({
-        where: { id: input.id, todoId: todo.id },
-      });
+      await prisma.todoItem.delete({ where: { id: input.id, todoId: todo.id } });
 
-      const latest = await prisma.todo.findUnique({
-        where:   { userId_targetDate: { userId, targetDate } },
+      const result = await prisma.todo.findUnique({
+        where: { userId_targetDate: { userId, targetDate } },
         include: { items: true },
       });
-      return latest?.items ?? [];
+      return result?.items ?? [];
     }),
 
-    getTodoByUserId:publicProcedure
-    .input(z.object({
-      userId:z.number(),
-      targetDate:z.string(),
-    }))
-    .query(async({input,ctx})=>{
-      const userId = ctx.session.user?.id;
-      ensureLogin(userId);
-      console.log("getTodoByUserId", input);
-      const [year, month, day] = input.targetDate.split('-').map(Number);
-      const targetDate = new Date(Date.UTC(year, month - 1, day));
-
-      const todos = await prisma.todo.findUnique({
-        where:{
-          userId_targetDate:{
-            userId:input.userId,
-            targetDate:targetDate,
-          },
-        },
-        include:{
-          items:true,
-        },
+  // ユーザーID指定で取得（フレンド閲覧用）
+  getTodoByUserId: publicProcedure
+    .input(z.object({ userId: z.number(), targetDate: z.string() }))
+    .query(async ({ input, ctx }) => {
+      ensureLogin(ctx.session.user?.id);
+      const targetDate = parseTargetDate(input.targetDate);
+      const result = await prisma.todo.findUnique({
+        where: { userId_targetDate: { userId: input.userId, targetDate } },
+        include: { items: true },
       });
-      return todos?.items ?? [];
+      return result?.items ?? [];
     }),
 
+  // タスクタイトル更新
   updateTodo: publicProcedure
     .input(updateSchema)
     .mutation(async ({ input, ctx }) => {
-      const userId = ctx.session.user?.id;
-      ensureLogin(userId);
-      console.log("updateTodo=====", input);
+      ensureLogin(ctx.session.user?.id);
       await prisma.todoItem.update({
         where: { id: input.id, todoId: input.todoId },
         data: { title: input.title },
       });
-
       return true;
     }),
 });
