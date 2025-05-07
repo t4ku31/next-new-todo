@@ -1,5 +1,4 @@
 'use client';
-
 import { User } from 'lucide-react';
 import { useUiStore } from '@/store/useUiStore';
 
