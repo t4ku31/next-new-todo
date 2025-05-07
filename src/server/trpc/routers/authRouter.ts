@@ -7,13 +7,13 @@ import type { UserSession }      from "@/lib/session";
 
 // Zod スキーマ
 const registerSchema = z.object({
-  username: z.string().min(3),
+  username: z.string().min(3).max(15),
   email:    z.string().email(),
-  password: z.string().min(6),
+  password: z.string().min(6).max(32),
 });
 const loginSchema = z.object({
   email:    z.string().email(),
-  password: z.string(),
+  password: z.string().min(6).max(32),
 });
 
 export const authRouter = router({
@@ -22,14 +22,21 @@ export const authRouter = router({
     .input(registerSchema)
     .mutation(async ({ input, ctx }) => {
       // 重複チェック
-      const conflict = await ctx.prisma.user.findUnique({ where: { email: input.email } });
-      if (conflict) {
+      const conflictEmail = await ctx.prisma.user.findUnique({ where: { email: input.email } });
+      if (conflictEmail) { 
         throw new TRPCError({
           code: 'CONFLICT',
           message: 'このメールアドレスは既に使われています',
         });
       }
 
+      const conflictUsername = await ctx.prisma.user.findUnique({ where: { username: input.username } });
+      if (conflictUsername) { 
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'このユーザー名は既に使われています',
+        });
+      }
       // パスワードハッシュ化 & ユーザー作成
       const passwordHash = await hash(input.password, 10);
       const user = await ctx.prisma.user.create({

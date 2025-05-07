@@ -11,7 +11,7 @@ import { useState } from 'react';
 // フォーム入力のスキーマ
 const loginSchema = z.object({
   email:    z.string().email('有効なメールアドレスを入力してください'),
-  password: z.string().min(6, 'パスワードは6文字以上です'),
+  password: z.string().min(6, 'パスワードは6文字以上です').max(32, 'パスワードは32文字以内です'),
 });
 type LoginFormData = z.infer<typeof loginSchema>;
 
