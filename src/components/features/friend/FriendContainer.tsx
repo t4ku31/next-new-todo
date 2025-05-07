@@ -11,8 +11,8 @@ const FriendContainer: React.FC = () => {
 
   <aside
   className={`
-    fixed right-0 top-16 bottom-0 w-96 z-20
-    bg-white border-l shadow-lg
+    fixed right-0 top-19 bottom-0 w-96 z-20
+    bg-white shadow-2xl
     transform transition-transform duration-300
     ${bar ? 'translate-x-0' : 'translate-x-full'}
     overflow-y-auto
