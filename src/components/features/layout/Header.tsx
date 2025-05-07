@@ -14,9 +14,8 @@ export default function Header() {
         <CalendarToggle/>
      
     
-        <a href="/" className="text-white text-xl font-bold">
-          {selectedDate}
-          ToDo List
+        <a href="/" className="text-white text-xl text-center font-bold">
+          To-Do List
         </a>
         <div className="space-x-4">
          
