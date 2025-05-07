@@ -1,7 +1,7 @@
 'use client';
 
 import Header from './features/layout/Header';
-import CalendarSidebar from '@/components/features/calendar/CalendarSidebar';
+import Calendar from '@/components/features/calendar/Calendar';
 import FriendContainer from '@/components/features/friend/FriendContainer';
 
 interface ClientLayoutProps {
@@ -17,7 +17,7 @@ export const ClientLayout: React.FC<ClientLayoutProps> = ({ children }) => {
       {/* 2. 本文エリア: カレンダーは fixed or dropdown で表示 */}
       <div className="flex flex-1">
         {/* カレンダーサイドバー */}
-        <CalendarSidebar />
+        <Calendar/>
 
         {/* フレンド一覧 */}
         <FriendContainer />

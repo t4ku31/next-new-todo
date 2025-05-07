@@ -4,15 +4,17 @@ import FullCalendar from '@fullcalendar/react';
 import dayGridPlugin from '@fullcalendar/daygrid';
 import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
+import React, { useRef } from 'react';
 
 import type { DateClickArg } from '@fullcalendar/interaction';
 import { useUiStore, UIState } from '@/store/useUiStore';
 
-export default function CalendarSidebar() {
+export default function calendar() {
   const sidebarOpen     = useUiStore((s: UIState) => s.sidebarOpen);
   const setSelectedDate = useUiStore((s: UIState) => s.setSelectedDate);
   const selectedDate    = useUiStore((s: UIState) => s.selectedDate); // 'YYYY-MM-DD'
 
+  const calendarRef = useRef<FullCalendar | null>(null);
   // 日付クリック時に Zustand に保存
   const handleDateClick = (arg: DateClickArg) => {
     setSelectedDate(arg.dateStr);
@@ -31,7 +33,7 @@ export default function CalendarSidebar() {
   return (
     <aside
       className={`
-        fixed top-20 left-0 w-96 z-20 bg-white shadow-lg
+        fixed top-35 left-10 w-96 z-20 bg-white shadow-lg rounded-2xl
         overflow-hidden transform transition-all duration-300 ease-in-out
         ${sidebarOpen
           ? 'max-h-[80vh] translate-y-0 overflow-y-auto'
@@ -39,7 +41,7 @@ export default function CalendarSidebar() {
       `}
     >
       <FullCalendar
-        key={selectedDate}
+        ref={calendarRef}
         plugins={[dayGridPlugin, interactionPlugin, listPlugin]}
         initialView="dayGridMonth"
         contentHeight="auto"
