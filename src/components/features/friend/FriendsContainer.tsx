@@ -13,7 +13,7 @@ export default function FriendsContainer() {
     if (error)     return <p className="text-red-500">エラーが発生しました</p>;
 
     return (
-        <section className="bg-gray-100 rounded-lg p-4">
+        <section className="bg-gray-50 rounded-lg p-4">
       <h2 className="text-xl font-semibold mb-4">Friends</h2>
       {friends.length > 0 ? (
         <ul className="space-y-2">
