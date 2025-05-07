@@ -2,11 +2,12 @@
 import Providers from '@/components/features/providers';
 import ChatContainer  from '@/components/features/chat/ChatContainer';
 
-type PageProps = {
-  params: { id: string; username: string };
-};
 
-export default async function MessagePage({ params }: PageProps) {
+export default async function MessagePage({ 
+  params 
+}: {
+   params: { id: string; username: string };
+}) {
   const { id, username } = params;
   return (
     <Providers>
