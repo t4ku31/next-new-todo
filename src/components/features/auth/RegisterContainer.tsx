@@ -6,25 +6,31 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { trpc } from '@/lib/trpcClient';
-
+import { useState } from 'react';
 // フォーム入力のスキーマ
 const registerSchema = z.object({
-  username: z.string().min(3, 'ユーザー名は3文字以上です'),
+  username: z.string().min(3, 'ユーザー名は3文字以上です').max(15, 'ユーザー名は15文字以内です'),
   email:    z.string().email('有効なメールアドレスを入力してください'),
-  password: z.string().min(6, 'パスワードは6文字以上です'),
+  password: z.string().min(6, 'パスワードは6文字以上です').max(32, 'パスワードは32文字以内です'),
 });
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function RegisterContainer() {
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
   const registerMutation = trpc.auth.register.useMutation({
     onSuccess: () => {
       router.push('/');
     },
+    onError: (error) => {
+      if (error.data?.code === 'CONFLICT') {
+        setError(error.message);
+      }
+    },
   });
 
   const {
-    register,
+    register, 
     handleSubmit,
     formState: { errors },
   } = useForm<RegisterFormData>({
@@ -43,7 +49,9 @@ export default function RegisterContainer() {
     <div className="max-w-md mx-auto mt-10 p-6 bg-white shadow rounded-lg">
 
       <h2 className="text-2xl font-semibold mb-4 text-center">新規登録</h2>
-      
+      {error && (
+        <p className="text-red-500 text-sm">{error}</p>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <input
